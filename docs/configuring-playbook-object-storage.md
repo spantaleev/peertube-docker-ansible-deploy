@@ -16,7 +16,9 @@ For `private` and `unlisted` videos, objects remain private and can't be streame
 
 ## Preparing the bucket
 
-Your bucket can be `private`
+PeerTube will adjust the ACLs of files in the bucket based on the video's privacy settings, as described in [How does it work?](#how-does-it-work).
+
+Due to this, your bucket can be `private`, but you shouldn't be blocking public ACLs on objects.
 
 
 ## Configuration

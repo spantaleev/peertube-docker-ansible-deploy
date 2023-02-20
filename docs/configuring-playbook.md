@@ -33,6 +33,8 @@ However, you may wish to tweak a few other things before installing (or any time
 
 - [configuring the database](configuring-playbook-database.md) - if you'd like to use an external Postgres server - by default, we install Postgres in a container alongside PeerTube
 
+- [configuring object storage](configuring-playbook-object-storage.md) - if you'd like to use an Object Storage service (like [AWS S3](https://aws.amazon.com/s3/)) for storing your media files
+
 - [configuring the reverse-proxy](configuring-playbook-reverse-proxy.md) - if you'd like to expose your PeerTube service to the internet using another HTTP webserver - by default, we set up [Traefik](https://traefik.io) which will handle ports `80` (`http`) and `443` (`https`)
 
 You may also take a look at the various `defaults/main.yml` files in `roles/` and see if there's anything you'd like to copy over and override in your `vars.yml` configuration file.
