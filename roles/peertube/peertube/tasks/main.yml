@@ -1,0 +1,11 @@
+---
+
+- block:
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
+  tags:
+    - setup-all
+    - setup-peertube
+    - install-all
+    - install-peertube

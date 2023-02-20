@@ -1,0 +1,62 @@
+---
+
+- name: Fail if required PeerTube settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) for using this role.
+  when: "vars[item] == ''"
+  with_items:
+    - peertube_identifier
+    - peertube_uid
+    - peertube_gid
+    - peertube_container_network
+    - peertube_hostname
+    - peertube_path_prefix
+    - peertube_config_database_hostname
+    - peertube_config_database_username
+    - peertube_config_database_password
+    - peertube_config_secret
+    - peertube_config_admin_email
+    - peertube_config_redis_hostname
+    - peertube_config_root_user_initial_password
+
+# There doesn't seem to be an environment variable for customizing it.
+# There's only `PEERTUBE_DB_SUFFIX` for adding a suffix.
+- name: Fail if required PeerTube database name is not peertube
+  ansible.builtin.fail:
+    msg: >-
+      The database name (peertube_config_database_name) is not currectly configurable and must be set to 'peertube'.
+  when: "peertube_config_database_name != 'peertube'"
+
+- name: Fail if required PeerTube Object Storage settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) for using this role.
+  when: "peertube_config_object_storage_enabled | bool and vars[item] == ''"
+  with_items:
+    - peertube_config_object_storage_endpoint
+    - peertube_config_object_storage_region
+    - peertube_config_object_storage_credentials_access_key_id
+    - peertube_config_object_storage_credentials_secret_access_key
+    - peertube_config_object_storage_streaming_playlists_bucket_name
+    - peertube_config_object_storage_videos_bucket_name
+
+- when: peertube_container_labels_traefik_enabled | bool
+  block:
+    - name: Fail if required PeerTube Traefik settings not defined
+      ansible.builtin.fail:
+        msg: >-
+          You need to define a required configuration setting (`{{ item }}`).
+      when: "vars[item] == ''"
+      with_items:
+        - peertube_container_labels_traefik_hostname
+        - peertube_container_labels_traefik_path_prefix
+
+    # We ensure it doesn't end with a slash, because we handle both (slash and no-slash).
+    # Knowing that `peertube_container_labels_traefik_path_prefix` does not end with a slash
+    # ensures we know how to set these routes up without having to do "does it end with a slash" checks elsewhere.
+    - name: Fail if peertube_container_labels_traefik_path_prefix ends with a slash
+      ansible.builtin.fail:
+        msg: >-
+          peertube_container_labels_traefik_path_prefix (`{{ peertube_container_labels_traefik_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/peertube`).
+      when: "peertube_container_labels_traefik_path_prefix != '/' and peertube_container_labels_traefik_path_prefix[-1] == '/'"

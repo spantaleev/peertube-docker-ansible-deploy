@@ -1,0 +1,9 @@
+---
+
+- name: Ensure PeerTube base paths exists
+  ansible.builtin.file:
+    path: "{{ peertube_playbook_base_path }}"
+    state: directory
+    mode: "{{ peertube_playbook_base_path_mode }}"
+    owner: "{{ peertube_playbook_uid }}"
+    group: "{{ peertube_playbook_gid }}"

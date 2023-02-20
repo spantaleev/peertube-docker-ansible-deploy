@@ -1,0 +1,45 @@
+{% if peertube_container_labels_traefik_enabled %}
+traefik.enable=true
+
+{% if peertube_container_labels_traefik_docker_network %}
+traefik.docker.network={{ peertube_container_labels_traefik_docker_network }}
+{% endif %}
+
+{% set middlewares = [] %}
+
+{% if peertube_container_labels_traefik_path_prefix != '/' %}
+traefik.http.middlewares.{{ peertube_identifier }}-slashless-redirect.redirectregex.regex=({{ peertube_container_labels_traefik_path_prefix | quote }})$
+traefik.http.middlewares.{{ peertube_identifier }}-slashless-redirect.redirectregex.replacement=${1}/
+{% set middlewares = middlewares + [peertube_identifier + '-slashless-redirect'] %}
+{% endif %}
+
+{% if peertube_container_labels_traefik_path_prefix != '/' %}
+traefik.http.middlewares.{{ peertube_identifier }}-strip-prefix.stripprefix.prefixes={{ peertube_container_labels_traefik_path_prefix }}
+{% set middlewares = middlewares + [peertube_identifier + '-strip-prefix'] %}
+{% endif %}
+
+{% if peertube_container_labels_traefik_additional_response_headers.keys() | length > 0 %}
+{% for name, value in peertube_container_labels_traefik_additional_response_headers.items() %}
+traefik.http.middlewares.{{ peertube_identifier }}-add-headers.headers.customresponseheaders.{{ name }}={{ value }}
+{% endfor %}
+{% set middlewares = middlewares + [peertube_identifier + '-add-headers'] %}
+{% endif %}
+
+traefik.http.routers.{{ peertube_identifier }}.rule={{ peertube_container_labels_traefik_rule }}
+{% if peertube_container_labels_traefik_priority | int > 0 %}
+traefik.http.routers.{{ peertube_identifier }}.priority={{ peertube_container_labels_traefik_priority }}
+{% endif %}
+traefik.http.routers.{{ peertube_identifier }}.service={{ peertube_identifier }}
+{% if middlewares | length > 0 %}
+traefik.http.routers.{{ peertube_identifier }}.middlewares={{ middlewares | join(',') }}
+{% endif %}
+traefik.http.routers.{{ peertube_identifier }}.entrypoints={{ peertube_container_labels_traefik_entrypoints }}
+traefik.http.routers.{{ peertube_identifier }}.tls={{ peertube_container_labels_traefik_tls | to_json }}
+{% if peertube_container_labels_traefik_tls %}
+traefik.http.routers.{{ peertube_identifier }}.tls.certResolver={{ peertube_container_labels_traefik_tls_certResolver }}
+{% endif %}
+
+traefik.http.services.{{ peertube_identifier }}.loadbalancer.server.port=9000
+{% endif %}
+
+{{ peertube_container_labels_additional_labels }}

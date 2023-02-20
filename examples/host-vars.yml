@@ -1,0 +1,26 @@
+---
+
+# A Postgres password to use for the superuser Postgres user (called `root` by default).
+#
+# The playbook creates additional Postgres users and databases (one for each enabled service) using this superuser account.
+devture_postgres_connection_password: ''
+
+# A secret used as a base, for generating various other secrets.
+# You can put any string here, but generating a strong one is preferred (e.g. `pwgen -s 64 1`).
+peertube_playbook_generic_secret_key: ''
+
+# Example: 'peertube.YOUR_DOMAIN' or 'my-videos-service.com'
+peertube_hostname: ''
+
+# A PeerTube secret.
+# You can put any string here, but generating a strong one is preferred (e.g. `pwgen -s 64 1`).
+peertube_config_secret: ''
+
+# An email address to be associated with the `root` PeerTube administrator account.
+# This email address will also be passed to Traefik (which is then provided to Let's Encrypt) for obtaining SSL certificates,
+# unless you adjust `devture_traefik_config_certificatesResolvers_acme_email`.
+peertube_config_admin_email: ''
+
+# The initial password that the `root` PeerTube administrator account will be created with.
+# You can put any string here, but generating a strong one is preferred (e.g. `pwgen -s 64 1`).
+peertube_config_root_user_initial_password: ''

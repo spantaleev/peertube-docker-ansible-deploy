@@ -1,0 +1,49 @@
+[Unit]
+Description=PeerTube ({{ peertube_identifier }})
+{% for service in peertube_systemd_required_services_list %}
+Requires={{ service }}
+After={{ service }}
+{% endfor %}
+DefaultDependencies=no
+
+[Service]
+Type=simple
+Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} kill {{ peertube_identifier }} 2>/dev/null'
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ peertube_identifier }} 2>/dev/null'
+
+ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
+			--rm \
+			--name={{ peertube_identifier }} \
+			--log-driver=none \
+			--network={{ peertube_container_network }} \
+			--user={{ peertube_uid }}:{{ peertube_gid }} \
+			--cap-drop=ALL \
+			--read-only \
+			{% if peertube_container_http_host_bind_port != '' %}
+			-p {{ peertube_container_http_host_bind_port }}:9000 \
+			{% endif %}
+			{% if peertube_container_rtmp_host_bind_port != '' %}
+			-p {{ peertube_container_rtmp_host_bind_port }}:1935 \
+			-p {{ peertube_container_rtmp_host_bind_port }}:1935/udp \
+			{% endif %}
+			--env-file={{ peertube_base_path }}/env \
+			--label-file={{ peertube_base_path }}/labels \
+			--mount type=bind,src={{ peertube_config_dir_path }},dst=/config \
+			--mount type=bind,src={{ peertube_data_dir_path }},dst=/data \
+			{{ peertube_container_image }}
+
+{% for network in peertube_container_additional_networks %}
+ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ peertube_identifier }}
+{% endfor %}
+
+ExecStart={{ devture_systemd_docker_base_host_command_docker }} start --attach {{ peertube_identifier }}
+
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} kill {{ peertube_identifier }} 2>/dev/null'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ peertube_identifier }} 2>/dev/null'
+Restart=always
+RestartSec=30
+SyslogIdentifier={{ peertube_identifier }}
+
+[Install]
+WantedBy=multi-user.target

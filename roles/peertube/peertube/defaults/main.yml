@@ -1,0 +1,235 @@
+---
+
+peertube_enabled: true
+
+peertube_identifier: peertube-peertube
+
+peertube_version: v5.0.1
+
+peertube_uid: ''
+peertube_gid: ''
+
+# The hostname at which PeerTube is served.
+peertube_hostname: ''
+
+# The path at which PeerTube is exposed.
+# This value must either be `/` or not end with a slash (e.g. `/peertube`).
+peertube_path_prefix: /
+
+peertube_base_path: "{{ peertube_playbook_base_path }}/peertube"
+peertube_config_dir_path: "{{ peertube_base_path }}/config"
+peertube_data_dir_path: "{{ peertube_base_path }}/data"
+
+peertube_systemd_required_services_list: ['docker.service']
+
+peertube_config_database_hostname: ''
+peertube_config_database_port: 5432
+peertube_config_database_name: peertube
+peertube_config_database_username: ''
+peertube_config_database_password: ''
+
+# Controls the PEERTUBE_TRUST_PROXY environment variable, which specifies the trusted proxies.
+#
+# Define your own in `peertube_trusted_proxies_values_custom`.
+peertube_config_trust_proxy: |-
+  {{
+    (
+      ['127.0.0.1']
+      +
+      ['loopback']
+      +
+      peertube_trusted_proxies_values
+    )
+  }}
+
+# Controls the PEERTUBE_SECRET environment variable.
+# Generate a strong one with `pwgen -s 64 1`
+peertube_config_secret: ''
+
+# Controls the PEERTUBE_ADMIN_EMAIL environment variable
+peertube_config_admin_email: ''
+
+# Controls the PEERTUBE_REDIS_HOSTNAME environment variable
+peertube_config_redis_hostname: ''
+
+# Controls the PT_INITIAL_ROOT_PASSWORD environment variable, which configures the initial password of the automatically created `root` user.
+# See: https://github.com/Chocobozzz/PeerTube/blob/develop/support/doc/production.md#technologist-administrator
+#
+# While PeerTube allows this to be left empty and causes it to auto-generate the password in such cases (and spew it in the log),
+# this Ansible role requires that a password is always explicitly defined.
+peertube_config_root_user_initial_password: ''
+
+# Controls the PEERTUBE_OBJECT_STORAGE_ENABLED environment variable for enabling Object Storage.
+# See: https://docs.joinpeertube.org/admin-remote-storage
+peertube_config_object_storage_enabled: false
+# Controls the PEERTUBE_OBJECT_STORAGE_ENDPOINT environment variable.
+# Example: s3.us-east-1.amazonaws.com
+peertube_config_object_storage_endpoint: ''
+# Controls the PEERTUBE_OBJECT_STORAGE_REGION environment variable.
+# Example: us-east-1
+peertube_config_object_storage_region: ''
+
+# Controls the PEERTUBE_OBJECT_STORAGE_CREDENTIALS_ACCESS_KEY_ID environment variable.
+peertube_config_object_storage_credentials_access_key_id: ''
+# Controls the PEERTUBE_OBJECT_STORAGE_CREDENTIALS_SECRET_ACCESS_KEY environment variable.
+peertube_config_object_storage_credentials_secret_access_key: ''
+
+# Controls the PEERTUBE_OBJECT_STORAGE_STREAMING_PLAYLISTS_BUCKET_NAME environment variable.
+# Example: hls-videos
+peertube_config_object_storage_streaming_playlists_bucket_name: ''
+# Controls the PEERTUBE_OBJECT_STORAGE_STREAMING_PLAYLISTS_PREFIX environment variable
+peertube_config_object_storage_streaming_playlists_prefix: ''
+# Controls the PEERTUBE_OBJECT_STORAGE_STREAMING_PLAYLISTS_BASE_URL environment variable
+peertube_config_object_storage_streaming_playlists_base_url: ''
+
+# Controls the PEERTUBE_OBJECT_STORAGE_VIDEOS_BUCKET_NAME environment variable.
+# Example: webtorrent-videos
+peertube_config_object_storage_videos_bucket_name: ''
+# Controls the PEERTUBE_OBJECT_STORAGE_VIDEOS_PREFIX environment variable
+peertube_config_object_storage_videos_prefix: ''
+# Controls the PEERTUBE_OBJECT_STORAGE_VIDEOS_BASE_URL environment variable
+peertube_config_object_storage_videos_base_url: ''
+
+# Controls the PEERTUBE_OBJECT_STORAGE_UPLOAD_ACL_PUBLIC environment variable
+peertube_config_object_storage_upload_acl_public: public-read
+# Controls the PEERTUBE_OBJECT_STORAGE_UPLOAD_ACL_PRIVATE environment variable
+peertube_config_object_storage_upload_acl_private: private
+
+# Controls the PEERTUBE_LOG_LEVEL environment variable.
+# Valid values: debug, info, warn, error
+peertube_config_log_level: info
+
+peertube_container_image: "{{ peertube_container_image_registry_prefix }}chocobozzz/peertube:{{ peertube_container_image_tag }}"
+peertube_container_image_registry_prefix: docker.io/
+peertube_container_image_tag: "{{ peertube_version }}-bullseye"
+peertube_container_image_force_pull: "{{ peertube_container_image.endswith(':latest') }}"
+
+# The base container network. It will be auto-created by this role if it doesn't exist already.
+peertube_container_network: "{{ peertube_identifier }}"
+
+# A list of additional container networks that the container would be connected to.
+# The playbook does not create these networks, so make sure they already exist.
+# Use this to expose the container to another reverse proxy, which runs in a different container network.
+peertube_container_additional_networks: []
+
+# Controls whether the container exposes its HTTP port (tcp/9000 in the container).
+#
+# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:9000"), or empty string to not expose.
+peertube_container_http_host_bind_port: ''
+
+# Controls whether the container exposes its RTMP port (tcp/1935 and udp/1935 in the container).
+#
+# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:1935"), or empty string to not expose.
+peertube_container_rtmp_host_bind_port: ''
+
+# peertube_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
+# See `roles/peertube/peertube/templates/labels.j2` for details.
+#
+# To inject your own other container labels, see `peertube_container_labels_additional_labels`.
+peertube_container_labels_traefik_enabled: true
+peertube_container_labels_traefik_docker_network: ''
+peertube_container_labels_traefik_hostname: "{{ peertube_hostname }}"
+# The path prefix must either be `/` or not end with a slash (e.g. `/peertube`).
+peertube_container_labels_traefik_path_prefix: "{{ peertube_path_prefix }}"
+peertube_container_labels_traefik_rule: "Host(`{{ peertube_container_labels_traefik_hostname }}`){% if peertube_container_labels_traefik_path_prefix != '/' %} && PathPrefix(`{{ peertube_container_labels_traefik_path_prefix }}`){% endif %}"
+peertube_container_labels_traefik_priority: 0
+peertube_container_labels_traefik_entrypoints: web-secure
+peertube_container_labels_traefik_tls: "{{ peertube_container_labels_traefik_entrypoints != 'web' }}"
+peertube_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+
+# Controls which additional headers to attach to all HTTP responses.
+# To add your own headers, use `peertube_container_labels_traefik_additional_response_headers_custom`
+peertube_container_labels_traefik_additional_response_headers: "{{ peertube_container_labels_traefik_additional_response_headers_auto | combine(peertube_container_labels_traefik_additional_response_headers_custom) }}"
+peertube_container_labels_traefik_additional_response_headers_auto: |
+  {{
+    {}
+    | combine ({'X-XSS-Protection': peertube_http_header_xss_protection} if peertube_http_header_xss_protection else {})
+    | combine ({'X-Frame-Options': peertube_http_header_frame_options} if peertube_http_header_frame_options else {})
+    | combine ({'X-Content-Type-Options': peertube_http_header_content_type_options} if peertube_http_header_content_type_options else {})
+    | combine ({'Content-Security-Policy': peertube_http_header_content_security_policy} if peertube_http_header_content_security_policy else {})
+    | combine ({'Permission-Policy': peertube_http_header_content_permission_policy} if peertube_http_header_content_permission_policy else {})
+    | combine ({'Strict-Transport-Security': peertube_http_header_strict_transport_security} if peertube_http_header_strict_transport_security and peertube_container_labels_traefik_tls else {})
+  }}
+peertube_container_labels_traefik_additional_response_headers_custom: {}
+
+# peertube_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
+# See `roles/peertube/peertube/templates/labels.j2` for details.
+#
+# Example:
+# peertube_container_labels_additional_labels: |
+#   my.label=1
+#   another.label="here"
+peertube_container_labels_additional_labels: ''
+
+# peertube_container_additional_environment_variables contains a multiline string with additional environment variables to pass to the container.
+#
+# Example:
+# peertube_container_additional_environment_variables: |
+#   VAR=1
+#   ANOTHER=value
+peertube_container_additional_environment_variables: ''
+
+# Specifies the value of the `X-XSS-Protection` header
+# Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
+#
+# Learn more about it is here:
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+# - https://portswigger.net/web-security/cross-site-scripting/reflected
+peertube_http_header_xss_protection: "1; mode=block"
+
+# Specifies the value of the `X-Frame-Options` header which controls whether framing can happen.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+peertube_http_header_frame_options: "{{ 'SAMEORIGIN' if peertube_framing_prevention_enabled else '' }}"
+
+# Specifies the value of the `X-Content-Type-Options` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+peertube_http_header_content_type_options: nosniff
+
+# Specifies the value of the `Content-Security-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+peertube_http_header_content_security_policy: |-
+  {{
+    "frame-ancestors 'self'"
+    if peertube_framing_prevention_enabled else ''
+  }}
+
+# Specifies the value of the `Permission-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permission-Policy
+peertube_http_header_content_permission_policy: "{{ 'interest-cohort=()' if peertube_floc_optout_enabled else '' }}"
+
+# Specifies the value of the `Strict-Transport-Security` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+peertube_http_header_strict_transport_security: "max-age=31536000; includeSubDomains{{ '; preload' if peertube_hsts_preload_enabled else '' }}"
+
+# Controls whether to send a "Permissions-Policy interest-cohort=();" header along with all responses
+#
+# Learn more about what it is here:
+# - https://www.eff.org/deeplinks/2021/03/googles-floc-terrible-idea
+# - https://paramdeo.com/blog/opting-your-website-out-of-googles-floc-network
+# - https://amifloced.org/
+#
+# Of course, a better solution is to just stop using browsers (like Chrome), which participate in such tracking practices.
+# See: `peertube_content_permission_policy`
+peertube_floc_optout_enabled: true
+
+# Controls if HSTS preloading is enabled
+#
+# In its strongest and recommended form, the [HSTS policy](https://www.chromium.org/hsts) includes all subdomains, and
+# indicates a willingness to be "preloaded" into browsers:
+# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
+# For more information visit:
+# - https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+# - https://hstspreload.org/#opt-in
+# See: `peertube_http_header_strict_transport_security`
+peertube_hsts_preload_enabled: false
+
+# Controls whether HTTP headers should be set which would prevent framing (embedding).
+peertube_framing_prevention_enabled: false
+
+# Controls which values to register in PEERTUBE_TRUST_PROXY
+# See `peertube_config_trust_proxy`.
+# Your own custom changes should be added to `peertube_trusted_proxies_values_custom`.
+peertube_trusted_proxies_values: "{{ peertube_trusted_proxies_values_auto + peertube_trusted_proxies_values_custom }}"
+peertube_trusted_proxies_values_auto: []
+peertube_trusted_proxies_values_custom: []

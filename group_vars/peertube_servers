@@ -1,0 +1,209 @@
+---
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.systemd_service_manager                     #
+#                                                                      #
+########################################################################
+
+devture_systemd_service_manager_services_list_auto: |
+  {{
+    ([{'name': (peertube_identifier + '.service'), 'priority': 1000, 'groups': ['peertube', 'server']}] if peertube_enabled else [])
+    +
+    ([{'name': (devture_postgres_identifier + '.service'), 'priority': 500, 'groups': ['peertube', 'postgres']}] if devture_postgres_enabled else [])
+    +
+    ([{'name': (redis_identifier + '.service'), 'priority': 750, 'groups': ['peertube', 'redis']}] if redis_enabled else [])
+    +
+    ([{'name': 'devture-traefik.service', 'priority': 3000, 'groups': ['peertube', 'traefik', 'reverse-proxies']}] if devture_traefik_enabled else [])
+  }}
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.systemd_service_manager                    #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# peertube                                                             #
+#                                                                      #
+########################################################################
+
+peertube_base_path: "{{ peertube_playbook_base_path }}/peertube"
+
+peertube_uid: "{{ peertube_playbook_uid }}"
+peertube_gid: "{{ peertube_playbook_gid }}"
+
+peertube_container_additional_networks: |
+  {{
+    (
+      ([peertube_playbook_reverse_proxyable_services_additional_network] if peertube_playbook_reverse_proxyable_services_additional_network else [])
+      +
+      ([devture_postgres_container_network] if devture_postgres_enabled else [])
+      +
+      ([redis_container_network] if peertube_config_redis_hostname == redis_identifier else [])
+    ) | unique
+  }}
+
+peertube_container_labels_traefik_enabled: "{{ peertube_playbook_traefik_labels_enabled }}"
+peertube_container_labels_traefik_docker_network: "{{ peertube_playbook_reverse_proxyable_services_additional_network }}"
+peertube_container_labels_traefik_entrypoints: "{{ devture_traefik_entrypoint_primary }}"
+
+peertube_config_database_hostname: "{{ devture_postgres_identifier if devture_postgres_enabled else '' }}"
+peertube_config_database_port: "{{ '5432' if devture_postgres_enabled else '' }}"
+peertube_config_database_username: peertube
+peertube_config_database_password: "{{ '%s' | format(peertube_playbook_generic_secret_key) | password_hash('sha512', 'db.peertube', rounds=655555) | to_uuid }}"
+
+peertube_config_redis_hostname: "{{ redis_identifier if redis_enabled else '' }}"
+
+peertube_systemd_required_services_list: |
+  {{
+    (['docker.service'])
+    +
+    ([devture_postgres_identifier ~ '.service'] if devture_postgres_enabled else [])
+    +
+    ([redis_identifier ~ '.service'] if peertube_config_redis_hostname == redis_identifier else [])
+  }}
+
+########################################################################
+#                                                                      #
+# /peertube                                                            #
+#                                                                      #
+########################################################################
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.postgres                                    #
+#                                                                      #
+########################################################################
+
+# To completely disable installing Postgres, use `devture_postgres_enabled: false`.
+
+devture_postgres_identifier: peertube-postgres
+
+devture_postgres_architecture: "{{ peertube_playbook_architecture }}"
+
+devture_postgres_base_path: "{{ peertube_playbook_base_path }}/postgres"
+
+devture_postgres_uid: "{{ peertube_playbook_uid }}"
+devture_postgres_gid: "{{ peertube_playbook_gid }}"
+
+devture_postgres_systemd_services_to_stop_for_maintenance_list: |
+  {{
+    ([peertube_identifier + '.service'])
+  }}
+
+devture_postgres_managed_databases_auto: |
+  {{
+    [{
+      'name': peertube_config_database_name,
+      'username': peertube_config_database_username,
+      'password': peertube_config_database_password,
+    }]
+  }}
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.postgres                                   #
+#                                                                      #
+########################################################################
+
+
+######################################################################
+#
+# etke/redis
+#
+######################################################################
+
+redis_identifier: peertube-redis
+
+redis_uid: "{{ peertube_playbook_uid }}"
+redis_gid: "{{ peertube_playbook_gid }}"
+
+redis_base_path: "{{ peertube_playbook_base_path }}/redis"
+
+######################################################################
+#
+# /etle/redis
+#
+######################################################################
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.playbook_state_preserver                    #
+#                                                                      #
+########################################################################
+
+# To completely disable this feature, use `devture_playbook_state_preserver_enabled: false`.
+
+devture_playbook_state_preserver_uid: "{{ peertube_playbook_uid }}"
+devture_playbook_state_preserver_gid: "{{ peertube_playbook_gid }}"
+
+devture_playbook_state_preserver_vars_preservation_dst: "{{ peertube_playbook_base_path }}/vars.yml"
+
+devture_playbook_state_preserver_commit_hash_preservation_dst: "{{ peertube_playbook_base_path }}/git_hash.yml"
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.playbook_state_preserver                   #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.traefik                                     #
+#                                                                      #
+########################################################################
+
+# To completely disable the Traefik role from running, use `peertube_playbook_traefik_role_enabled: false`.
+# See the comment there for more details about why we have both `devture_traefik_enabled` and `peertube_playbook_traefik_role_enabled`.
+devture_traefik_enabled: "{{ peertube_playbook_reverse_proxy_type == 'playbook-managed-traefik' }}"
+
+devture_traefik_uid: "{{ peertube_playbook_uid }}"
+devture_traefik_gid: "{{ peertube_playbook_gid }}"
+
+devture_traefik_config_certificatesResolvers_acme_email: "{{ peertube_config_admin_email }}"
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.traefik                                    #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.docker_sdk_for_python                       #
+#                                                                      #
+########################################################################
+
+# To completely disable installing the Docker SDK for Python, use `devture_docker_sdk_for_python_installation_enabled: false`.
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.docker_sdk_for_python                      #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.timesync                                    #
+#                                                                      #
+########################################################################
+
+# To completely disable installing systemd-timesyncd/ntpd, use `devture_timesync_installation_enabled: false`.
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.timesync                                   #
+#                                                                      #
+########################################################################
