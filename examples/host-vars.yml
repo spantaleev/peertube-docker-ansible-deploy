@@ -24,3 +24,9 @@ peertube_config_admin_email: ''
 # The initial password that the `root` PeerTube administrator account will be created with.
 # You can put any string here, but generating a strong one is preferred (e.g. `pwgen -s 64 1`).
 peertube_config_root_user_initial_password: ''
+
+# Uncomment and adjust this after completing the initial installation.
+# Find the `traefik` network's IP address range by running the following command on the server:
+# `docker network inspect traefik -f "{{ (index .IPAM.Config 0).Subnet }}"`
+# Then, replace the example IP range below, and re-run the playbook.
+# peertube_trusted_proxies_values_custom: ["172.21.0.0/16"]
