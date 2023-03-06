@@ -9,6 +9,8 @@
     # This role has no tasks at all
     - role: galaxy/com.devture.ansible.role.systemd_docker_base
 
+    - role: peertube/playbook_migration
+
     - when: peertube_playbook_docker_installation_enabled | bool
       role: galaxy/geerlingguy.docker
       vars:
@@ -44,8 +46,9 @@
 
     - role: peertube/peertube
 
-    - when: peertube_playbook_traefik_role_enabled | bool
-      role: galaxy/com.devture.ansible.role.traefik
+    - role: galaxy/com.devture.ansible.role.container_socket_proxy
+
+    - role: galaxy/com.devture.ansible.role.traefik
 
     - when: devture_systemd_service_manager_enabled | bool
       role: galaxy/com.devture.ansible.role.systemd_service_manager

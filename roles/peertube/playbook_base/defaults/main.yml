@@ -30,7 +30,7 @@ peertube_playbook_architecture: "{{ 'amd64' if ansible_architecture == 'x86_64' 
 # Valid options and a description of their behavior:
 #
 # - `playbook-managed-traefik`
-#     - the playbook will install devture-traefik
+#     - the playbook will run a managed Traefik instance (peertube-traefik)
 #     - Traefik will do SSL termination, unless you disable it (e.g. `devture_traefik_config_entrypoint_web_secure_enabled: false`)
 #     - if SSL termination is enabled (as it is by default), you need to populate: `devture_traefik_config_certificatesResolvers_acme_email`
 #
@@ -50,23 +50,9 @@ peertube_playbook_reverse_proxy_type: playbook-managed-traefik
 # Also see `devture_docker_sdk_for_python_installation_enabled`.
 peertube_playbook_docker_installation_enabled: true
 
-# Controls whether to run the Traefik role or not
-# See the `com.devture.ansible.role.traefik` section below for role configuration.
-#
-# There's a difference between `devture_traefik_enabled` and `peertube_playbook_traefik_role_enabled`.
-# `devture_traefik_enabled` controls what the Traefik role would do - when not enabled, it will run uninstall tasks, etc.
-# `peertube_playbook_traefik_role_enabled` controls if the Traefik role would even run at all.
-#
-# Sometimes, you're installing Traefik via a different (related playbook) which uses the same role.
-# In such cases, you'd like to disable the role in this playbook from bothering with Traefik at all (`peertube_playbook_traefik_role_enabled: false`).
-# If you used `devture_traefik_enabled: false` + `peertube_playbook_traefik_role_enabled: true` instead, you'd see the Treafik role here
-# try to delete Traefik data (`/devture-traefik`) installed by the other playbook.
-peertube_playbook_traefik_role_enabled: "{{ peertube_playbook_reverse_proxy_type != 'other-traefik-container' }}"
-
 # Controls whether to attach Traefik labels to services.
-# This is separate from `devture_traefik_enabled` and `peertube_playbook_traefik_role_enabled`,
-# because you may wish to disable Traefik installation by the playbook, yet still use Traefik
-# installed in another way.
+# This is separate from `devture_traefik_enabled`, because you may wish to disable Traefik installation by the playbook,
+# yet still use Traefik installed in another way.
 peertube_playbook_traefik_labels_enabled: "{{ peertube_playbook_reverse_proxy_type in ['playbook-managed-traefik', 'other-traefik-container'] }}"
 
 # Controls the additional network that reverse-proxyable services will be connected to.

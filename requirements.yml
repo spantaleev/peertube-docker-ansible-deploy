@@ -21,8 +21,11 @@
 - src: git+https://github.com/devture/com.devture.ansible.role.postgres.git
   version: a1bb78d194434b38005f3a9e623bfa4b2c06c7bc
 
+- src: git+https://github.com/devture/com.devture.ansible.role.container_socket_proxy.git
+  version: v0.1.1-1
+
 - src: git+https://github.com/devture/com.devture.ansible.role.traefik.git
-  version: v2.9.8-0
+  version: v2.9.8-1
 
 - src: git+https://github.com/devture/com.devture.ansible.role.systemd_service_manager.git
   version: 6ccb88ac5fc27e1e70afcd48278ade4b564a9096
