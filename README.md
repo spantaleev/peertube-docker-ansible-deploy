@@ -1,8 +1,14 @@
 # PeerTube server setup using Ansible and Docker
 
+------
+
+**WARNING**: this playbook has been **made obsolete** by the [MASH playbook](https://github.com/mother-of-all-self-hosting/mash-playbook), which also supports installing the [PeerTube service](https://github.com/mother-of-all-self-hosting/mash-playbook/blob/main/docs/services/peertube.md). There's a [migration guide](CHANGELOG.md#this-playbook-has-been-absorbed-into-the-mash-playbook) in the changelog.
+
+------
+
 This [Ansible](https://www.ansible.com/) playbook can help you set up your own [PeerTube](https://joinpeertube.org/) server instance.
 
-PeerTube is is a tool for sharing online videos developed by [Framasoft](https://framasoft.org/), a french non-profit.
+PeerTube is a tool for sharing online videos developed by [Framasoft](https://framasoft.org/), a french non-profit.
 
 This Ansible playbook can set up PeerTube:
 
